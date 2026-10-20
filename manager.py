@@ -4,6 +4,19 @@ import string
 import subprocess
 import sys 
 import pprint
+from pathlib import Path
+
+PASSWORDS_FILE = Path(__file__).resolve().with_name("passwords.json")
+MAIN_MANAGER_FILE = Path(__file__).resolve().with_name("main_manager.py")
+
+
+def _read_passwords():
+        try:
+                with PASSWORDS_FILE.open("r") as f:
+                        return json.load(f)
+        except FileNotFoundError:
+                print("No saved passwords found. Save a password to create passwords.json.\n")
+                return []
 
 def random_password(lenght=16):
         
@@ -48,20 +61,18 @@ def save_password():
                          }
 
 
-        with open("passwords.json", "r") as f:
-         passwords = json.load(f)
+        passwords = _read_passwords()
         passwords.append(new_entry)
-        with open("passwords.json", "w") as f:
+        with PASSWORDS_FILE.open("w") as f:
          json.dump(passwords, f, indent=4)
 
         print("Your new entry has been saved successfully. What do you want to do?\n")
-        subprocess.run ([sys.executable, "main_manager.py"])
+        subprocess.run ([sys.executable, str(MAIN_MANAGER_FILE)])
 
 def search_data():
          Data = input("Please enter a website, username or password.\n")
 
-         with open("passwords.json", "r") as f:
-          passwords = json.load(f)
+         passwords = _read_passwords()
          
          for entry in passwords:
 
@@ -80,7 +91,7 @@ def search_data():
                  
             
                  print("What would you like to do next?\n")
-                 subprocess.run([sys.executable, "main_manager.py"])
+                 subprocess.run([sys.executable, str(MAIN_MANAGER_FILE)])
            
 
          else:
@@ -92,21 +103,20 @@ def search_data():
                   
                 elif no_data == "n":
                    print ("Okay, what do you want to do?")
-                   subprocess.run ([sys.executable, "main_manager.py"])
+                   subprocess.run ([sys.executable, str(MAIN_MANAGER_FILE)])
 
                 else:
                    print ("I didn't understand that. Please enter 'y' or 'n'\n")
 
 
          print("What would you like to do next?\n")
-         subprocess.run([sys.executable, "main_manager.py"])
+         subprocess.run([sys.executable, str(MAIN_MANAGER_FILE)])
 
 def load_passwords():
-        print("Here are all your saved passwords!\n")
-        with open("passwords.json", "r") as f:
-          passwords = json.load(f)
-          entry = passwords
-          for entry in passwords:
+        passwords = _read_passwords()
+        if passwords:
+          print("Here are all your saved passwords!\n")
+        for entry in passwords:
              
              print("--------------------\n")
              print(f"""Password: {entry["Password"]}\nWebsite:  {entry["Website"]}\n""")
@@ -114,15 +124,18 @@ def load_passwords():
 
 
         print("What do you want to do now?")
-        subprocess.run([sys.executable, "main_manager.py"])
+        subprocess.run([sys.executable, str(MAIN_MANAGER_FILE)])
 
 
 def delete_password():
        P_delete = input("Please enter the Website, Username or Password you want to delete.\n")
-       with open("passwords.json", "r") as f:
-            passwords = json.load(f)
+       passwords = _read_passwords()
+       if not passwords:
+            print("There are no saved entries to delete.\n")
+            subprocess.run([sys.executable, str(MAIN_MANAGER_FILE)])
+            return
 
-            for entry in passwords:
+       for entry in passwords:
                 if (
                      P_delete == entry["Website"]
                   or P_delete == entry["Username"]
@@ -137,21 +150,21 @@ def delete_password():
                            do you really want to delete this entry? (Y / N)\n""") 
                      if safe == "y" or safe == "Y":
                                 passwords.remove(entry)
-                                with open("passwords.json", "w") as f:
+                                with PASSWORDS_FILE.open("w") as f:
                                     json.dump(passwords, f, indent=4) 
 
                                  
                                 print("The entry has been deleted. What would you like to do?") 
-                                subprocess.run([sys.executable, "main_manager.py"])    
+                                subprocess.run([sys.executable, str(MAIN_MANAGER_FILE)])    
                                 
                      else:
                       print("Okay, we will not delete this entry.") 
-                      subprocess.run([sys.executable, "main_manager.py"])    
+                      subprocess.run([sys.executable, str(MAIN_MANAGER_FILE)])    
 
 
                 else:
                        print("Your Input is not saved as an entry. What do you want to do?\n")
-                       subprocess.run([sys.executable, "main_manager.py"])
+                       subprocess.run([sys.executable, str(MAIN_MANAGER_FILE)])
 
        
 
